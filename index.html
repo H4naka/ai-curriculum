@@ -508,7 +508,7 @@ print(f"Analytical: {analytical_grad:.4f}")</pre>
 
     // ── LESSON 5 ────────────────────────────────────────────────────────
     {
-      id: 'm1-l5', type: 'lesson', badge: 'rust-refresh',
+      id: 'm1-l5', type: 'lesson', badge: 'core',
       title: 'Gradients & Gradient Descent',
       timeMin: 15,
       content: `
@@ -1209,7 +1209,7 @@ scores[scores < 60] = 0            # zero out failing scores</pre>
     },
 
     {
-      id: 'm2-l2', type: 'lesson', badge: 'new',
+      id: 'm2-l2', type: 'lesson', badge: 'rust-refresh',
       title: 'NumPy Broadcasting & Vectorisation',
       timeMin: 14,
       content: `
@@ -2572,7 +2572,7 @@ fh = FeatureHasher(n_features=16, input_type='string')</pre>
 
     // ── LESSON 5 ──────────────────────────────────────────────────────
     {
-      id: 'm3-l5', type: 'lesson', badge: 'new',
+      id: 'm3-l5', type: 'lesson', badge: 'rust-refresh',
       title: 'Feature Engineering — Creating Predictive Signal',
       timeMin: 16,
       content: `
@@ -4841,7 +4841,7 @@ print(df.shape, df.isna().sum())</pre>
   items: [
 
     {
-      id: 'm5-l1', type: 'lesson', badge: 'new',
+      id: 'm5-l1', type: 'lesson', badge: 'rust-refresh',
       title: 'Neural Networks — Neurons, Layers & the Forward Pass',
       timeMin: 15,
       content: `
@@ -15843,7 +15843,8 @@ def train_model(
 const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xyzxyz.supabase.co
 const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY';
 
-const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+const _supa = SUPABASE_CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // ════════════════════════════════════════════════════
 //  STATE & PERSISTENCE
@@ -15869,9 +15870,9 @@ let _currentUser = null;
 // ── Supabase sync ────────────────────────────────────
 
 async function syncFromSupabase() {
-  if (!_currentUser) return;
+  if (!_currentUser || !_supa) return;
   try {
-    const { data, error } = await _supa
+    const { data } = await _supa
       .from('progress')
       .select('data')
       .eq('user_id', _currentUser.id)
@@ -15886,7 +15887,7 @@ async function syncFromSupabase() {
 }
 
 async function syncToSupabase() {
-  if (!_currentUser) return;
+  if (!_currentUser || !_supa) return;
   try {
     await _supa.from('progress').upsert({
       user_id: _currentUser.id,
@@ -15904,6 +15905,7 @@ function saveState(s) {
 // ── Auth ─────────────────────────────────────────────
 
 async function handleAuthClick() {
+  if (!_supa) { alert('Supabase not configured yet — see the SUPABASE_URL and SUPABASE_KEY at the top of the script.'); return; }
   if (_currentUser) {
     await _supa.auth.signOut();
   } else {
@@ -15917,6 +15919,7 @@ async function handleAuthClick() {
 function updateAuthBtn(user) {
   const btn = document.getElementById('auth-btn');
   if (!btn) return;
+  if (!SUPABASE_CONFIGURED) { btn.style.display = 'none'; return; }
   if (user) {
     const name = user.user_metadata?.user_name || user.email || 'you';
     btn.textContent = `@${name} · Sign out`;
@@ -15927,20 +15930,20 @@ function updateAuthBtn(user) {
 
 // Boot auth
 (async () => {
-  const { data: { session } } = await _supa.auth.getSession();
-  if (session?.user) {
-    _currentUser = session.user;
-    updateAuthBtn(_currentUser);
-    await syncFromSupabase();
-  }
-
-  _supa.auth.onAuthStateChange(async (event, session) => {
-    _currentUser = session?.user || null;
-    updateAuthBtn(_currentUser);
-    if (_currentUser) {
+  if (!_supa) { updateAuthBtn(null); return; }
+  try {
+    const { data: { session } } = await _supa.auth.getSession();
+    if (session?.user) {
+      _currentUser = session.user;
+      updateAuthBtn(_currentUser);
       await syncFromSupabase();
     }
-  });
+    _supa.auth.onAuthStateChange(async (event, session) => {
+      _currentUser = session?.user || null;
+      updateAuthBtn(_currentUser);
+      if (_currentUser) await syncFromSupabase();
+    });
+  } catch {}
 })();
 
 // ── Progress helpers ─────────────────────────────────
@@ -16109,7 +16112,7 @@ function renderDashboard() {
     <div class="fade-up">
       <div class="dash-hero">
         <h1>Your <em>AI Engineering</em><br>Curriculum</h1>
-        <p>Micro-learning designed for 10–30 min a day. Theory, code, and exercises — all in one place.</p>
+        <p>Micro-learning designed for ADHD. 10–30 min a day. Theory, code, and exercises — all in one place.</p>
         <div class="section-label" style="margin-top:1rem">Filter by time available today</div>
         <div class="time-picker">
           <div class="time-chip active" onclick="filterByTime(0, this)">All items</div>
@@ -16189,7 +16192,7 @@ function renderModuleView(modId) {
   const lessonRows = lessons.map((item, idx) => {
     const done = isDone(item.id);
     const badgeClass = { 'rust-refresh': 'b-rust', 'new': 'b-new', 'core': 'b-core' }[item.badge] || 'b-core';
-    const badgeLabel = { 'rust-refresh': 'Rusty refresh', 'new': 'New', 'core': 'Core' }[item.badge] || item.badge;
+    const badgeLabel = { 'rust-refresh': 'Rust refresh', 'new': 'New', 'core': 'Core' }[item.badge] || item.badge;
     return `
       <div class="item-row ${done ? 'done' : ''}" onclick="navigate('item', ${mod.id}, '${item.id}')">
         <div class="item-status ${done ? 'done' : ''}">${done ? '✓' : (idx + 1)}</div>
