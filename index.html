@@ -247,7 +247,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-b); fo
   <div class="logo" onclick="navigate('dashboard')">AI<span>engineering</span></div>
   <div class="header-right">
     <div class="hstat" id="hstat-progress">0 / 0 done</div>
-    <div class="streak-badge" id="hstat-streak">🔥 0 day streak</div>
+    <div class="streak-badge" id="hstat-streak">🔥 0</div>
     <button id="auth-btn" onclick="handleAuthClick()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:3px 12px;border-radius:20px;font-size:.72rem;font-family:var(--font-m);cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Sign in</button>
   </div>
 </div>
@@ -23254,7 +23254,7 @@ function updateHeader() {
   const el1 = document.getElementById('hstat-progress');
   const el2 = document.getElementById('hstat-streak');
   if (el1) el1.innerHTML = `<b>${p.done}</b> / ${p.total} done`;
-  if (el2) el2.textContent = `🔥 ${appState.streakCount} day streak`;
+  if (el2) el2.textContent = `🔥 ${appState.streakCount}`;
 }
 
 
