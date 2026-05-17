@@ -25,6 +25,21 @@
   --font-b: 'Nunito', sans-serif;
   --font-m: 'JetBrains Mono', monospace;
 }
+[data-theme="light"] {
+  --bg: #F4F7FB;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --border: #DDE3EE;
+  --accent: #00A88A;
+  --accent-dim: rgba(0,168,138,0.08);
+  --accent2: #E05555;
+  --amber: #B07A00;
+  --blue: #2E7FD6;
+  --purple: #7C5CDB;
+  --text: #0A1628;
+  --muted: #3D5070;
+  --success: #1BAF7A;
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-b); font-size: 16px; line-height: 1.7; min-height: 100vh; }
@@ -55,6 +70,18 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-b); fo
 .hstat b { color: var(--accent); font-weight: 500; }
 .streak-badge { display: flex; align-items: center; gap: .3rem; background: rgba(253,184,71,.1); border: 1px solid rgba(253,184,71,.25); border-radius: 20px; padding: 2px 10px; font-size: .72rem; font-family: var(--font-m); color: var(--amber); }
 @media (max-width: 540px) { .hstat { display: none; } }
+[data-theme="light"] .lesson-body pre,
+[data-theme="light"] .exercise-card pre { background: #F0F4FA; border-color: #CBD4E8; }
+[data-theme="light"] .lesson-body p,
+[data-theme="light"] .lesson-body ul,
+[data-theme="light"] .lesson-body ol,
+[data-theme="light"] .callout,
+[data-theme="light"] .key-takeaways ul { color: var(--text); }
+[data-theme="light"] .exercise-card { color: var(--text); }
+[data-theme="light"] .exercise-card p,
+[data-theme="light"] .exercise-card ul,
+[data-theme="light"] .exercise-card ol { color: var(--text); }
+[data-theme="light"] .quiz-opt { color: var(--text); }
 
 /* ─── LAYOUT ─────────────────────────────────────── */
 .wrap { max-width: 1080px; margin: 0 auto; padding: 2rem 1.5rem; }
@@ -138,7 +165,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-b); fo
 .lesson-body li { margin-bottom: .35rem; line-height: 1.65; font-size: .95rem; }
 .lesson-body strong { color: var(--text); font-weight: 700; }
 .lesson-body code { font-family: var(--font-m); font-size: .82em; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--amber); }
-.lesson-body pre { background: #060F1E; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; overflow-x: auto; margin: 1rem 0; font-family: var(--font-m); font-size: .8rem; line-height: 1.65; color: var(--text); }
+.lesson-body pre { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; overflow-x: auto; margin: 1rem 0; font-family: var(--font-m); font-size: .8rem; line-height: 1.65; color: var(--text); }
 .lesson-body pre code { background: none; border: none; padding: 0; color: inherit; font-size: 1em; }
 .callout { background: rgba(0,212,170,.06); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: .85rem 1.1rem; margin: 1.1rem 0; font-size: .88rem; color: #C4D4EE; line-height: 1.65; }
 .callout strong { display: block; margin-bottom: .2rem; font-family: var(--font-m); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
@@ -201,7 +228,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-b); fo
 .exercise-card ul, .exercise-card ol { margin: .4rem 0 .75rem 1.4rem; color: #C4D4EE; }
 .exercise-card li { margin-bottom: .35rem; font-size: .92rem; line-height: 1.6; }
 .exercise-card code { font-family: var(--font-m); font-size: .82em; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--amber); }
-.exercise-card pre { background: #060F1E; border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; font-family: var(--font-m); font-size: .79rem; line-height: 1.65; overflow-x: auto; margin: .8rem 0; color: var(--text); }
+.exercise-card pre { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; font-family: var(--font-m); font-size: .79rem; line-height: 1.65; overflow-x: auto; margin: .8rem 0; color: var(--text); }
 .exercise-card pre code { background: none; border: none; padding: 0; color: inherit; }
 .hints-section { margin-top: .2rem; }
 .hint-btn { width: 100%; text-align: left; background: transparent; border: 1px dashed var(--border); border-radius: 9px; padding: .6rem 1rem; color: var(--muted); cursor: pointer; font-size: .83rem; font-family: var(--font-b); transition: all .15s; }
@@ -249,6 +276,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-b); fo
     <div class="hstat" id="hstat-progress">0 / 0 done</div>
     <div class="streak-badge" id="hstat-streak">🔥 0</div>
     <button id="auth-btn" onclick="handleAuthClick()" style="background:var(--card);border:1px solid var(--border);color:var(--muted);padding:3px 12px;border-radius:20px;font-size:.72rem;font-family:var(--font-m);cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Sign in</button>
+    <button id="theme-btn" onclick="toggleTheme()" style="background:none;border:none;cursor:pointer;font-size:1rem;padding:2px 4px;line-height:1;opacity:.7;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.7'" title="Toggle light/dark mode">🌙</button>
   </div>
 </div>
 
@@ -257,6 +285,29 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-b); fo
 </div>
 
 <script>
+// ════════════════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════════════════
+
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? '' : 'light');
+  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀️';
+  localStorage.setItem('theme', isLight ? 'dark' : 'light');
+}
+
+// Apply saved theme on load
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('theme-btn');
+      if (btn) btn.textContent = '☀️';
+    });
+  }
+})();
+
 // ════════════════════════════════════════════════════
 //  CURRICULUM DATA
 // ════════════════════════════════════════════════════
@@ -23360,6 +23411,7 @@ function renderDashboard() {
     const isDone = mp.pct === 100;
     return `
       <div class="module-card ${isCS ? 'coming-soon' : ''} ${isDone ? 'complete' : ''}" 
+           data-modid="${mod.id}"
            style="${mod.theme ? `background:${mod.color}22;border-color:${mod.color}70;` : ``}"
            onclick="${mod.available ? `navigate('module', ${mod.id})` : ''}">
         ${isCS ? '<div class="coming-soon-tag">Coming soon</div>' : ''}
@@ -23383,12 +23435,14 @@ function renderDashboard() {
       <div class="dash-hero">
         <h1>Your <em>AI Engineering</em><br>Curriculum</h1>
         <p>Micro-learning designed for 10–30 min a day. Theory, code, and exercises — all in one place.</p>
-        <div class="section-label" style="margin-top:1rem">Filter by time available today</div>
+        <div class="section-label" style="margin-top:1rem">Filter modules</div>
         <div class="time-picker">
-          <div class="time-chip active" onclick="filterByTime(0, this)">All items</div>
-          <div class="time-chip" onclick="filterByTime(15, this)">≤ 15 min</div>
-          <div class="time-chip" onclick="filterByTime(30, this)">≤ 30 min</div>
-          <div class="time-chip" onclick="filterByTime(999, this)">Deep dives</div>
+          <div class="time-chip active" onclick="filterModules('all', this)">All</div>
+          <div class="time-chip" onclick="filterModules('inprogress', this)">In progress</div>
+          <div class="time-chip" onclick="filterModules('notstarted', this)">Not started</div>
+          <div class="time-chip" onclick="filterModules('done', this)">Completed</div>
+          <div class="time-chip" onclick="filterModules('quick', this)">≤ 15 min items</div>
+          <div class="time-chip" onclick="filterModules('deepdive', this)">Deep dives</div>
         </div>
       </div>
       <div class="overall-bar">
@@ -23407,23 +23461,24 @@ function renderDashboard() {
     </div>`;
 }
 
-function filterByTime(maxMin, el) {
+function filterModules(mode, el) {
   document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   const grid = document.getElementById('modules-grid');
   if (!grid) return;
   const cards = grid.querySelectorAll('.module-card');
-  cards.forEach((card, i) => {
-    const mod = CURRICULUM[i];
+  cards.forEach(card => {
+    const modId = parseInt(card.dataset.modid);
+    const mod = CURRICULUM.find(m => m.id === modId);
     if (!mod) return;
-    if (maxMin === 0) { card.style.display = ''; return; }
-    if (maxMin === 999) {
-      const hasDD = mod.items.some(it => it.type === 'deepdive');
-      card.style.display = hasDD ? '' : 'none';
-    } else {
-      const hasMatch = mod.items.some(it => it.type !== 'deepdive' && (it.timeMin || 0) <= maxMin);
-      card.style.display = (hasMatch || !mod.available) ? '' : 'none';
-    }
+    const mp = getModuleProgress(mod);
+    let show = true;
+    if (mode === 'inprogress') show = mp.done > 0 && mp.pct < 100;
+    else if (mode === 'notstarted') show = mp.done === 0;
+    else if (mode === 'done') show = mp.pct === 100;
+    else if (mode === 'quick') show = mod.items.some(it => it.type !== 'deepdive' && (it.timeMin || 0) <= 15 && !isDone(it.id));
+    else if (mode === 'deepdive') show = mod.items.some(it => it.type === 'deepdive' && !isDone(it.id));
+    card.style.display = show ? '' : 'none';
   });
 }
 
