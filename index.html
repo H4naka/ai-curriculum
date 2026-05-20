@@ -23192,34 +23192,59 @@ let _currentUser = null;
 async function syncFromSupabase() {
   if (!_currentUser || !_supa) return;
   try {
-    const { data } = await _supa
+    const { data, error } = await _supa
       .from('progress')
       .select('data')
       .eq('user_id', _currentUser.id)
       .single();
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows found (first time user) — ignore that, surface others
+      console.warn('Supabase sync error:', error.message);
+      return;
+    }
     if (data && data.data) {
-      appState = { ...EMPTY_STATE(), ...data.data };
+      const remote = { ...EMPTY_STATE(), ...data.data };
+      const local  = appState;
+      // Merge: take the union of all completed items (never lose progress)
+      const mergedCompleted = { ...local.completed, ...remote.completed };
+      // Take the higher streak count
+      const remoteDate  = remote.streakDate;
+      const localDate   = local.streakDate;
+      const useRemote   = (remote.streakCount || 0) >= (local.streakCount || 0);
+      appState = {
+        ...remote,
+        completed:   mergedCompleted,
+        streakCount: useRemote ? remote.streakCount : local.streakCount,
+        streakDate:  useRemote ? remoteDate : localDate,
+      };
       saveLocalState(appState);
+      // Push the merged state back so both devices stay in sync
+      await syncToSupabase();
       render();
       updateHeader();
     }
-  } catch {}
+  } catch(e) {
+    console.warn('syncFromSupabase failed:', e);
+  }
 }
 
 async function syncToSupabase() {
   if (!_currentUser || !_supa) return;
   try {
-    await _supa.from('progress').upsert({
+    const { error } = await _supa.from('progress').upsert({
       user_id: _currentUser.id,
       data: appState,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
-  } catch {}
+    if (error) console.warn('Supabase save error:', error.message);
+  } catch(e) {
+    console.warn('syncToSupabase failed:', e);
+  }
 }
 
-function saveState(s) {
+async function saveState(s) {
   saveLocalState(s);
-  syncToSupabase();
+  await syncToSupabase();
 }
 
 // ── Auth ─────────────────────────────────────────────
@@ -23252,23 +23277,35 @@ function updateAuthBtn(user) {
 (async () => {
   if (!_supa) { updateAuthBtn(null); return; }
   try {
+    // Handle OAuth redirect — Supabase appends #access_token=... to the URL
+    // We must call exchangeCodeForSession or let the client parse the fragment
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      // Let Supabase parse the fragment and establish the session
+      await _supa.auth.getSession();
+      // Clean the URL so the token isn't visible or bookmarked
+      history.replaceState(null, '', window.location.pathname);
+    }
+
     const { data: { session } } = await _supa.auth.getSession();
     if (session?.user) {
       _currentUser = session.user;
       updateAuthBtn(_currentUser);
       await syncFromSupabase();
     }
+
     _supa.auth.onAuthStateChange(async (event, session) => {
       _currentUser = session?.user || null;
       updateAuthBtn(_currentUser);
       if (_currentUser) await syncFromSupabase();
     });
-  } catch {}
+  } catch(e) {
+    console.warn('Auth boot error:', e);
+  }
 })();
 
 // ── Progress helpers ─────────────────────────────────
 
-function markItemDone(itemId) {
+async function markItemDone(itemId) {
   appState.completed[itemId] = true;
   const today = new Date().toDateString();
   if (appState.streakDate !== today) {
@@ -23276,7 +23313,7 @@ function markItemDone(itemId) {
     appState.streakCount = (appState.streakDate === yesterday) ? (appState.streakCount + 1) : 1;
     appState.streakDate = today;
   }
-  saveState(appState);
+  await saveState(appState);
   updateHeader();
 }
 
