@@ -23187,6 +23187,7 @@ function saveLocalState(s) {
 
 let appState = loadLocalState();
 let _currentUser = null;
+let _supabaseReady = false;
 
 // ── Supabase sync ────────────────────────────────────
 
@@ -23276,22 +23277,27 @@ function updateAuthBtn(user) {
 
 // Boot auth
 (async () => {
-  if (!_supa) { updateAuthBtn(null); return; }
+  if (!_supa) { updateAuthBtn(null); render(); return; }
   try {
-    // Handle OAuth redirect — Supabase appends #access_token=... to the URL
-    // We must call exchangeCodeForSession or let the client parse the fragment
     if (window.location.hash && window.location.hash.includes('access_token')) {
-      // Let Supabase parse the fragment and establish the session
       await _supa.auth.getSession();
-      // Clean the URL so the token isn't visible or bookmarked
       history.replaceState(null, '', window.location.pathname);
     }
 
     const { data: { session } } = await _supa.auth.getSession();
     if (session?.user) {
+      // Signed in — show loading, wait for remote state, render once
+      document.getElementById('app').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:var(--muted);font-family:var(--font-m);font-size:.85rem;gap:.6rem;">
+          <span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Loading…
+        </div>`;
+      appState = EMPTY_STATE();
       _currentUser = session.user;
       updateAuthBtn(_currentUser);
       await syncFromSupabase();
+    } else {
+      // Not signed in — render immediately from localStorage, no flash
+      render();
     }
 
     _supa.auth.onAuthStateChange(async (event, session) => {
@@ -23301,6 +23307,7 @@ function updateAuthBtn(user) {
     });
   } catch(e) {
     console.warn('Auth boot error:', e);
+    render();
   }
 })();
 
@@ -23751,25 +23758,37 @@ function render() {
 }
 
 // ── Boot ────────────────────────────────────────────
-
-// Show a neutral loading state instantly — no flash of stale local data
-document.getElementById('app').innerHTML = `
-  <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:var(--muted);font-family:var(--font-m);font-size:.85rem;gap:.6rem;">
-    <span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Loading…
-  </div>`;
-
-// Render once auth + sync has settled
 (async () => {
-  if (SUPABASE_CONFIGURED) {
-    // Give auth up to 3 seconds to resolve before falling back to local state
-    await Promise.race([
-      new Promise(resolve => {
-        const unsub = _supa.auth.onAuthStateChange(() => { unsub.data?.subscription?.unsubscribe(); resolve(); });
-      }),
-      new Promise(resolve => setTimeout(resolve, 3000))
-    ]);
+  if (!_supa) { updateAuthBtn(null); render(); return; }
+  try {
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      await _supa.auth.getSession();
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    const { data: { session } } = await _supa.auth.getSession();
+    if (session?.user) {
+      document.getElementById('app').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:var(--muted);font-family:var(--font-m);font-size:.85rem;gap:.6rem;">
+          <span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Loading…
+        </div>`;
+      appState = EMPTY_STATE();
+      _currentUser = session.user;
+      updateAuthBtn(_currentUser);
+      await syncFromSupabase();
+    } else {
+      render();
+    }
+
+    _supa.auth.onAuthStateChange(async (event, session) => {
+      _currentUser = session?.user || null;
+      updateAuthBtn(_currentUser);
+      if (_currentUser) await syncFromSupabase();
+    });
+  } catch(e) {
+    console.warn('Auth boot error:', e);
+    render();
   }
-  render();
 })();
 </script>
 </body>
