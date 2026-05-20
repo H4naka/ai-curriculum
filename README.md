@@ -29,8 +29,6 @@ Progress is saved to your account and syncs across your laptop, phone, and any o
 
 **182 hours of content** across 15 modules — 137 lessons, 96 exercises, and 31 deep dives.
 
-Each module follows the same micro-learning structure: bite-sized theory lessons (10–20 min), hands-on coding exercises, and extended deep dives for those who want to go further.
-
 -----
 
 |# |Module                                       |Topics                                                                               |Hours|Content   |
