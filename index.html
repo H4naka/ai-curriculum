@@ -23185,7 +23185,7 @@ function saveLocalState(s) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
 }
 
-let appState = SUPABASE_CONFIGURED ? EMPTY_STATE() : loadLocalState();
+let appState = loadLocalState();
 let _currentUser = null;
 
 // ── Supabase sync ────────────────────────────────────
@@ -23292,9 +23292,6 @@ function updateAuthBtn(user) {
       _currentUser = session.user;
       updateAuthBtn(_currentUser);
       await syncFromSupabase();
-    } else {
-      // Not signed in — render with empty state
-      render();
     }
 
     _supa.auth.onAuthStateChange(async (event, session) => {
@@ -23755,15 +23752,25 @@ function render() {
 
 // ── Boot ────────────────────────────────────────────
 
-// If Supabase is configured, show a loading state until auth resolves
-if (SUPABASE_CONFIGURED) {
-  document.getElementById('app').innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:var(--muted);font-family:var(--font-m);font-size:.85rem;gap:.6rem;">
-      <span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Loading…
-    </div>`;
-} else {
+// Show a neutral loading state instantly — no flash of stale local data
+document.getElementById('app').innerHTML = `
+  <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:var(--muted);font-family:var(--font-m);font-size:.85rem;gap:.6rem;">
+    <span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Loading…
+  </div>`;
+
+// Render once auth + sync has settled
+(async () => {
+  if (SUPABASE_CONFIGURED) {
+    // Give auth up to 3 seconds to resolve before falling back to local state
+    await Promise.race([
+      new Promise(resolve => {
+        const unsub = _supa.auth.onAuthStateChange(() => { unsub.data?.subscription?.unsubscribe(); resolve(); });
+      }),
+      new Promise(resolve => setTimeout(resolve, 3000))
+    ]);
+  }
   render();
-}
+})();
 </script>
 </body>
 </html>
